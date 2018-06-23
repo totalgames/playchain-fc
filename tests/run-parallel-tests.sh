@@ -5,14 +5,17 @@ if [ "$#" != 1 ]; then
     exit 1
 fi
 
-"$1" --list_content 2>&1 \
-  | grep '\*$' \
-  | sed 's=\*$==;s=^    =/=' \
-  | while read t; do
-	case "$t" in
-	/*) echo "$pre$t"; ;;
-	*) pre="$t"; ;;
-	esac
-    done \
-  | parallel echo Running {}\; "$1" -t {}
-
+if "$1" --list_content; then
+    "$1" --list_content 2>&1 \
+      | grep '\*$' \
+      | sed 's=\*$==;s=^    =/=' \
+      | while read t; do
+            case "$t" in
+            /*) echo "$pre$t"; ;;
+            *) pre="$t"; ;;
+            esac
+        done \
+      | parallel echo Running {}\; "$1" -t {}
+else
+    "$1"
+fi
