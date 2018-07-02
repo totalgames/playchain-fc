@@ -20,6 +20,8 @@ BOOST_AUTO_TEST_SUITE(logging_tests)
 
 BOOST_AUTO_TEST_CASE(log_reboot)
 {
+   // to keep destructors happy
+
    BOOST_TEST_MESSAGE("Setting up logger");
    fc::file_appender::config conf;
    conf.filename = "/tmp/my.log";
@@ -30,14 +32,14 @@ BOOST_AUTO_TEST_CASE(log_reboot)
    conf.rotation_limit = fc::seconds(20); // Don't keep files older than 20 seconds
    conf.max_object_depth = 200;
 
-   fc::file_appender fa( fc::variant(conf, 200) );
+   fc::appender::ptr fa = fc::appender::create("file", "file", fc::variant(conf, 200));
 
    BOOST_TEST_MESSAGE("Starting Loop");
-   for(int i = 0; i < 30; i++)
+   for(int i = 0; i < 10; i++)
    {
       fc::log_context ctx(fc::log_level::all, "my_file.cpp", 10, "my_method()");
       fc::log_message my_log_message( ctx, "${message}", {"message","This is a test"} );
-      fa.log(my_log_message);
+      fa->log(my_log_message);
       fc::usleep(fc::seconds(1));
    }
    BOOST_TEST_MESSAGE("Loop complete");
