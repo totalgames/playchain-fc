@@ -32,7 +32,7 @@ namespace fc {
          }
 
       public:
-         impl( const config& c) : fc::retainable(), cfg( c )
+         impl( const config& c) : cfg( c )
          {
              if( cfg.rotate )
              {
@@ -151,24 +151,6 @@ namespace fc {
          std::cerr << "error opening log file: " << my->cfg.filename.preferred_string() << "\n";
       }
    }
-
-   file_appender::file_appender( const config& arg ) : fc::appender(),
-     my( new impl( arg ) )
-   {
-      try
-      {
-         fc::create_directories(my->cfg.filename.parent_path());
-
-         if(!my->cfg.rotate)
-            my->out.open( my->cfg.filename, std::ios_base::out | std::ios_base::app);
-
-      }
-      catch( ... )
-      {
-         std::cerr << "error opening log file: " << my->cfg.filename.preferred_string() << "\n";
-      }
-   }
-
 
    file_appender::~file_appender(){}
 

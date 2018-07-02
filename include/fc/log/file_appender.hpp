@@ -21,7 +21,6 @@ class file_appender : public appender {
             uint32_t                           max_object_depth;
          };
          file_appender( const variant& args );
-         file_appender( const config& arg );
          ~file_appender();
          virtual void log( const log_message& m )override;
 

@@ -4,7 +4,7 @@
 
 #include <fc/thread/thread.hpp>
 #include <fc/reflect/reflect.hpp>
-#include <fc/variant.hpp>
+#include <fc/reflect/variant.hpp>
 #include <fc/log/file_appender.hpp>
 #include <fc/log/logger.hpp>
 #include <fc/log/logger_config.hpp>
@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(log_reboot)
    conf.rotation_limit = fc::seconds(20); // Don't keep files older than 20 seconds
    conf.max_object_depth = 200;
 
-   fc::file_appender fa( conf );
+   fc::file_appender fa( fc::variant(conf, 200) );
 
    BOOST_TEST_MESSAGE("Starting Loop");
    for(int i = 0; i < 30; i++)
