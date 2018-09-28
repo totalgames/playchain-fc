@@ -18,9 +18,9 @@ static void check_randomness( const char* buffer, size_t len ) {
         }
     }
     BOOST_CHECK_EQUAL( 8*len, zc + oc );
-    double E = 1 + (zc + oc) / 2.0;
-    double variance = (E - 1) * (E - 2) / (oc + zc - 1);
-    double sigma = sqrt(variance);
+    //double E = 1 + (zc + oc) / 2.0;
+    //double variance = (E - 1) * (E - 2) / (oc + zc - 1);
+    //double sigma = sqrt(variance);
 
     // Next 2 test were removed as it will not always pass
     //BOOST_CHECK_GT(rc, E - sigma);
