@@ -127,6 +127,8 @@ namespace fc
     gelf_message["_thread_name"] = context.get_thread_name();
     if (!context.get_task_name().empty())
       gelf_message["_task_name"] = context.get_task_name();
+    if(!my->cfg.additional_info.empty())
+      gelf_message["_port"] = my->cfg.additional_info;
 
     string gelf_message_as_string;
     try
