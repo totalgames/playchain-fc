@@ -16,7 +16,7 @@ namespace fc
       string endpoint = "127.0.0.1:12201";
       string host = "fc"; // the name of the host, source or application that sent this message (just passed through to GELF server)
       string additional_info;
-      uint32_t max_object_depth;
+      uint32_t max_object_depth = FC_MAX_LOG_OBJECT_DEPTH;
     };
 
     gelf_appender(const variant& args);

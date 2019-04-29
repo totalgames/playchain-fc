@@ -6,6 +6,7 @@
  *
  */
 
+#include <fc/string.hpp>
 #include <fc/utility.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -87,6 +88,9 @@ void throw_bad_enum_cast( const char* k, const char* e );
   visitor.TEMPLATE operator()<member_type,type,&type::elem>( BOOST_PP_STRINGIZE(elem) ); \
 }
 
+#define FC_REFLECT_VISIT_MEMBER_I( r, visitor, I, elem ) \
+   case I: FC_REFLECT_VISIT_MEMBER( r, visitor, elem ) break;
+
 
 #define FC_REFLECT_BASE_MEMBER_COUNT( r, OP, elem ) \
   OP fc::reflector<elem>::total_member_count
@@ -99,6 +103,13 @@ template<typename Visitor>\
 static inline void visit( const Visitor& v ) { \
     BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_VISIT_BASE, v, INHERITS ) \
     BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_VISIT_MEMBER, v, MEMBERS ) \
+}\
+template<typename Visitor, typename IndexType>\
+static inline void visit_local_member( const Visitor& v, IndexType index ) { \
+   switch( index ) {\
+      BOOST_PP_SEQ_FOR_EACH_I( FC_REFLECT_VISIT_MEMBER_I, v, MEMBERS ) \
+      default: break;\
+   }\
 }
 
 #define FC_REFLECT_DERIVED_IMPL_EXT( TYPE, INHERITS, MEMBERS ) \
@@ -116,7 +127,7 @@ void fc::reflector<TYPE>::visit( const Visitor& v ) { \
 #define FC_REFLECT_ENUM_TO_STRING( r, enum_type, elem ) \
    case enum_type::elem: return BOOST_PP_STRINGIZE(elem);
 #define FC_REFLECT_ENUM_TO_FC_STRING( r, enum_type, elem ) \
-   case enum_type::elem: return fc::string(BOOST_PP_STRINGIZE(elem));
+   case enum_type::elem: return std::string(BOOST_PP_STRINGIZE(elem));
 
 #define FC_REFLECT_ENUM_FROM_STRING( r, enum_type, elem ) \
   if( strcmp( s, BOOST_PP_STRINGIZE(elem)  ) == 0 ) return enum_type::elem;
@@ -139,13 +150,13 @@ template<> struct reflector<ENUM> { \
     static const char* to_string(int64_t i) { \
       return to_string(ENUM(i)); \
     } \
-    static fc::string to_fc_string(ENUM elem) { \
+    static std::string to_fc_string(ENUM elem) { \
       switch( elem ) { \
         BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_ENUM_TO_FC_STRING, ENUM, FIELDS ) \
       } \
       return fc::to_string(int64_t(elem)); \
     } \
-    static fc::string to_fc_string(int64_t i) { \
+    static std::string to_fc_string(int64_t i) { \
       return to_fc_string(ENUM(i)); \
     } \
     static ENUM from_int(int64_t i) { \

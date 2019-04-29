@@ -6,6 +6,12 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/logger/stub.hpp>
 
+#ifdef HAS_ZLIB
+#include <websocketpp/extensions/permessage_deflate/enabled.hpp>
+#else
+#include <websocketpp/extensions/permessage_deflate/disabled.hpp>
+#endif
+
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
 #include <fc/thread/thread.hpp>
@@ -61,6 +67,15 @@ namespace fc { namespace http {
               transport_type;
 
           static const long timeout_open_handshake = 0;
+
+       // permessage_compress extension
+       struct permessage_deflate_config {};
+#ifdef HAS_ZLIB
+       typedef websocketpp::extensions::permessage_deflate::enabled <permessage_deflate_config> permessage_deflate_type;
+#else
+       typedef websocketpp::extensions::permessage_deflate::disabled <permessage_deflate_config> permessage_deflate_type;
+#endif
+
       };
       struct asio_tls_with_stub_log : public websocketpp::config::asio_tls {
 
@@ -226,6 +241,7 @@ namespace fc { namespace http {
 
                        fc::async([current_con, request_body, con] {
                           std::string response = current_con->on_http(request_body);
+                          idump((response));
                           con->set_body( response );
                           con->set_status( websocketpp::http::status_code::ok );
                           con->send_http_response();
@@ -348,7 +364,7 @@ namespace fc { namespace http {
                           auto con = _server.get_con_from_hdl(hdl);
                           wdump(("server")(con->get_request_body()));
                           auto response = current_con->on_http( con->get_request_body() );
-
+                          idump((response));
                           con->set_body( response );
                           con->set_status( websocketpp::http::status_code::ok );
                        } catch ( const fc::exception& e )

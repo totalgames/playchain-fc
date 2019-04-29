@@ -1,6 +1,5 @@
 #pragma once
 #include <fc/fwd.hpp>
-#include <fc/string.hpp>
 #include <fc/platform_independence.hpp>
 #include <fc/io/raw_fwd.hpp>
 
@@ -133,16 +132,5 @@ namespace std
     };
 }
 
-namespace boost
-{
-    template<>
-    struct hash<fc::sha256>
-    {
-       size_t operator()( const fc::sha256& s )const
-       {
-           return  s._hash[3];//*((size_t*)&s);
-       }
-    };
-}
 #include <fc/reflect/reflect.hpp>
 FC_REFLECT_TYPENAME( fc::sha256 )

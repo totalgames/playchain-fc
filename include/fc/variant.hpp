@@ -11,10 +11,7 @@
 #include <string.h> // memset
 
 #include <fc/optional.hpp>
-#include <fc/string.hpp>
-#include <fc/container/deque_fwd.hpp>
 #include <fc/container/flat_fwd.hpp>
-#include <fc/smart_ref_fwd.hpp>
 #include <boost/multi_index_container_fwd.hpp>
 
 #ifdef FC_ASSERT
@@ -62,8 +59,6 @@ namespace fc
    template<typename T, typename... Args> void to_variant( const boost::multi_index_container<T,Args...>& s, variant& v, uint32_t max_depth );
    template<typename T, typename... Args> void from_variant( const variant& v, boost::multi_index_container<T,Args...>& s, uint32_t max_depth );
 
-   template<typename T> void to_variant( const smart_ref<T>& s, variant& v, uint32_t max_depth );
-   template<typename T> void from_variant( const variant& v, smart_ref<T>& s, uint32_t max_depth );
    template<typename T> void to_variant( const safe<T>& s, variant& v, uint32_t max_depth );
    template<typename T> void from_variant( const variant& v, safe<T>& s, uint32_t max_depth );
    template<typename T> void to_variant( const std::unique_ptr<T>& s, variant& v, uint32_t max_depth );
@@ -91,6 +86,8 @@ namespace fc
 
    void to_variant( const uint64_t& var,  variant& vo,  uint32_t max_depth = 1 );
    void to_variant( const int64_t& var,   variant& vo,  uint32_t max_depth = 1 );
+
+   void to_variant( const bool& var,      variant& vo,  uint32_t max_depth = 1 );
 
    void to_variant( const variant_object& var, variant& vo,        uint32_t max_depth );
    void from_variant( const variant& var,      variant_object& vo, uint32_t max_depth );
@@ -129,10 +126,10 @@ namespace fc
    template<typename T>
    void from_variant( const variant& var, std::deque<T>& vo, uint32_t max_depth );
 
-   template<typename T>
-   void to_variant( const fc::flat_set<T>& var,   variant& vo, uint32_t max_depth );
-   template<typename T>
-   void from_variant( const variant& var, fc::flat_set<T>& vo, uint32_t max_depth );
+   template<typename T, typename... A>
+   void to_variant( const fc::flat_set<T, A...>& var,   variant& vo, uint32_t max_depth );
+   template<typename T, typename... A>
+   void from_variant( const variant& var, fc::flat_set<T, A...>& vo, uint32_t max_depth );
 
    template<typename T>
    void to_variant( const std::set<T>& var,  variant& vo,  uint32_t max_depth );
@@ -173,7 +170,7 @@ namespace fc
     *        and variant_object's.  
     *
     * variant's allocate everything but strings, arrays, and objects on the
-    * stack and are 'move aware' for values allcoated on the heap.  
+    * stack and are 'move aware' for values allocated on the heap.
     *
     * Memory usage on 64 bit systems is 16 bytes and 12 bytes on 32 bit systems.
     */
@@ -218,7 +215,7 @@ namespace fc
         variant( double val, uint32_t max_depth = 1 );
         variant( bool val, uint32_t max_depth = 1 );
         variant( blob val, uint32_t max_depth = 1 );
-        variant( fc::string val, uint32_t max_depth = 1 );
+        variant( std::string val, uint32_t max_depth = 1 );
         variant( variant_object, uint32_t max_depth = 1 );
         variant( mutable_variant_object, uint32_t max_depth = 1 );
         variant( variants, uint32_t max_depth = 1 );
@@ -239,7 +236,7 @@ namespace fc
               virtual void handle( const uint64_t& v )const      = 0;
               virtual void handle( const double& v )const        = 0;
               virtual void handle( const bool& v )const          = 0;
-              virtual void handle( const string& v )const        = 0;
+              virtual void handle( const std::string& v )const   = 0;
               virtual void handle( const variant_object& v)const = 0;
               virtual void handle( const variants& v)const       = 0;
         };
@@ -278,10 +275,10 @@ namespace fc
         /** Convert's double, ints, bools, etc to a string
          * @throw if get_type() == array_type | get_type() == object_type 
          */
-        string                      as_string()const;
+        std::string                 as_string()const;
 
         /// @pre  get_type() == string_type
-        const string&               get_string()const;
+        const std::string&          get_string()const;
                                     
         /// @throw if get_type() != array_type | null_type
         variants&                   get_array();
@@ -352,13 +349,13 @@ namespace fc
         void    clear();
       private:
         void    init();
-        double  _data;                ///< Alligned according to double requirements
+        double  _data;                ///< Aligned according to double requirements
         char    _type[sizeof(void*)]; ///< pad to void* size
    };
    typedef optional<variant> ovariant;
   
    /** @ingroup Serializable */
-   void from_variant( const variant& var,  string& vo,   uint32_t max_depth = 1 );
+   void from_variant( const variant& var,  std::string& vo, uint32_t max_depth = 1 );
    /** @ingroup Serializable */
    void from_variant( const variant& var,  variants& vo, uint32_t max_depth );
    void from_variant( const variant& var,  variant& vo,  uint32_t max_depth );
@@ -620,16 +617,6 @@ namespace fc
    template<typename T>
    void from_variant( const variant& v, safe<T>& s, uint32_t max_depth ) {
       s.value = v.as<T>( max_depth );
-   }
-
-   template<typename T>
-   void to_variant( const smart_ref<T>& s, variant& v, uint32_t max_depth ) {
-      to_variant( *s, v, max_depth );
-   }
-
-   template<typename T>
-   void from_variant( const variant& v, smart_ref<T>& s, uint32_t max_depth ) {
-      from_variant( v, *s, max_depth );
    }
 
    template<typename T, typename... Args>

@@ -3,8 +3,6 @@
 #define FC_CONTEXT_STACK_SIZE (2048*1024)
 
 #include <fc/thread/task.hpp>
-#include <fc/vector.hpp>
-#include <fc/string.hpp>
 
 namespace fc {
   class time_point;
@@ -12,6 +10,7 @@ namespace fc {
 
    namespace detail
    {
+      class worker_pool;
       void* get_thread_specific_data(unsigned slot);
       void set_thread_specific_data(unsigned slot, void* new_value, void(*cleanup)(void*));
       unsigned get_next_unused_task_storage_slot();
@@ -19,11 +18,29 @@ namespace fc {
       void set_task_specific_data(unsigned slot, void* new_value, void(*cleanup)(void*));
    }
 
+   /** Instances of this class can be used to get notifications when a thread is
+    *  (or is no longer) idle.
+    */
+   class thread_idle_notifier {
+   public:
+      virtual ~thread_idle_notifier() {}
+
+      /** This method is called when the thread is idle. If it returns a
+       *  task_base it will be queued and executed immediately.
+       *  @return a task to execute, or nullptr
+       */
+      virtual task_base* idle() = 0;
+      /** This method is called when the thread is no longer idle, e. g. after
+       *  it has woken up due to a timer or signal.
+       */
+      virtual void busy() = 0;
+   };
+
   class thread {
     public:
-      thread( const std::string& name = "" );
-      thread( thread&& m );
-      thread& operator=(thread&& t );
+      thread( const std::string& name = "", thread_idle_notifier* notifier = 0 );
+      thread( thread&& m ) = delete;
+      thread& operator=(thread&& t ) = delete;
 
       /**
        *  Returns the current thread.
@@ -56,7 +73,7 @@ namespace fc {
        *  @note debug info is more useful if you provide a description for your
        *  async tasks and promises.
        */
-      void    debug( const fc::string& d );
+      void    debug( const std::string& d );
      
      
       /**
@@ -127,14 +144,15 @@ namespace fc {
           std::vector<fc::promise_base::ptr> proms(2);
           proms[0] = fc::static_pointer_cast<fc::promise_base>(f1.m_prom);
           proms[1] = fc::static_pointer_cast<fc::promise_base>(f2.m_prom);
-          return wait_any_until(fc::move(proms), fc::time_point::now()+timeout_us );
+          return wait_any_until(std::move(proms), fc::time_point::now()+timeout_us );
        }
     private:
-      thread( class thread_d* );
+      thread( class thread_d* ); // parameter is ignored, will create a new thread_d
       friend class promise_base;
       friend class task_base;
       friend class thread_d;
       friend class mutex;
+      friend class detail::worker_pool;
       friend void* detail::get_thread_specific_data(unsigned slot);
       friend void detail::set_thread_specific_data(unsigned slot, void* new_value, void(*cleanup)(void*));
       friend unsigned detail::get_next_unused_task_storage_slot();

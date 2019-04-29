@@ -12,13 +12,13 @@ class file_appender : public appender {
          struct config {
             config( const fc::path& p = "log.txt" );
 
-            fc::string                         format;
+            std::string                         format;
             fc::path                           filename;
             bool                               flush = true;
             bool                               rotate = false;
             microseconds                       rotation_interval;
             microseconds                       rotation_limit;
-            uint32_t                           max_object_depth;
+            uint32_t                           max_object_depth = FC_MAX_LOG_OBJECT_DEPTH;
          };
          file_appender( const variant& args );
          ~file_appender();
