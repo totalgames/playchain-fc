@@ -3,6 +3,8 @@
 #include <fc/utility.hpp>
 #include <fc/smart_ref_fwd.hpp>
 #include <new>
+#include <type_traits>
+#include <utility>
 
 namespace fc {
 
@@ -10,7 +12,7 @@ namespace fc {
 
       template<typename A, typename U>
       struct insert_op {
-        typedef decltype( *((A*)0) << *((typename fc::remove_reference<U>::type*)0) ) type; 
+        typedef decltype( *((A*)0) << *((typename std::remove_reference<U>::type*)0) ) type;
       };
 
       template<typename A, typename U>
@@ -57,7 +59,7 @@ namespace fc {
     }
     template<typename T>
     smart_ref<T>::smart_ref( smart_ref<T>&& f ){
-      impl = new T( fc::move(*f) );
+      impl = new T( std::move(*f) );
     }
 
     template<typename T>
