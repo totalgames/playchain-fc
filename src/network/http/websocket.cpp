@@ -237,11 +237,11 @@ namespace fc { namespace http {
                        auto con = _server.get_con_from_hdl(hdl);
                        con->defer_http_response();
                        std::string request_body = con->get_request_body();
-                       wdump(("server")(request_body));
+                       ilog("HTTP REQUEST: ${r}", ("r", request_body));
 
                        fc::async([current_con, request_body, con] {
                           std::string response = current_con->on_http(request_body);
-                          idump((response));
+                          ilog("HTTP RESPONSE: ${r}", ("r", response));
                           con->set_body( response );
                           con->set_status( websocketpp::http::status_code::ok );
                           con->send_http_response();
@@ -362,9 +362,9 @@ namespace fc { namespace http {
                           _on_connection( current_con );
 
                           auto con = _server.get_con_from_hdl(hdl);
-                          wdump(("server")(con->get_request_body()));
+                          ilog("HTTPS REQUEST: ${r}", ("r", con->get_request_body()));
                           auto response = current_con->on_http( con->get_request_body() );
-                          idump((response));
+                          ilog("HTTPS RESPONSE: ${r}", ("r", response));
                           con->set_body( response );
                           con->set_status( websocketpp::http::status_code::ok );
                        } catch ( const fc::exception& e )

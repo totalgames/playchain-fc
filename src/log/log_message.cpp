@@ -7,6 +7,7 @@
 #include <fc/filesystem.hpp>
 #include <fc/io/stdio.hpp>
 #include <fc/io/json.hpp>
+#include <atomic>
 
 namespace fc
 {
@@ -24,7 +25,13 @@ namespace fc
             string       hostname;
             string       context;
             time_point   timestamp;
+            uint64_t     id;
+
+            log_context_impl() :id(s_id_counter++) {}
+      private:
+            static std::atomic_ulong s_id_counter;
       };
+      std::atomic_ulong log_context_impl::s_id_counter(0u);
 
       class log_message_impl
       {
@@ -63,6 +70,7 @@ namespace fc
    {
        auto obj = v.get_object();
        my->level        = obj["level"].as<log_level>(max_depth);
+       my->id           = obj["id"].as_uint64();
        my->file         = obj["file"].as_string();
        my->line         = obj["line"].as_uint64();
        my->method       = obj["method"].as_string();
@@ -151,7 +159,7 @@ namespace fc
    }
 
 
-
+   uint64_t   log_context::get_msg_id()const { return my->id; }
    string     log_context::get_file()const       { return my->file; }
    uint64_t   log_context::get_line_number()const { return my->line; }
    string     log_context::get_method()const     { return my->method; }
@@ -167,6 +175,7 @@ namespace fc
    {
       mutable_variant_object o;
               o( "level",        variant(my->level, max_depth) )
+               ( "id",           my->id)
                ( "file",         my->file                )
                ( "line",         my->line                )
                ( "method",       my->method              )

@@ -66,6 +66,7 @@ namespace fc
         explicit log_context( const variant& v, uint32_t max_depth );
         variant to_variant( uint32_t max_depth )const;
 
+        uint64_t      get_msg_id()const;
         std::string   get_file()const;
         uint64_t      get_line_number()const;
         std::string   get_method()const;

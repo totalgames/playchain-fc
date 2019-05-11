@@ -121,6 +121,7 @@ namespace fc
 
     if (!context.get_context().empty())
       gelf_message["context"] = context.get_context();
+    gelf_message["_msg_id"] = context.get_msg_id();
     gelf_message["_line"] = context.get_line_number();
     gelf_message["_file"] = context.get_file();
     gelf_message["_method_name"] = context.get_method();
